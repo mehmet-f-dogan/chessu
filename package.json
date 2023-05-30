@@ -1,6 +1,10 @@
 {
   "name": "chessu",
   "version": "0.1.0",
+  "author": {
+    "email": "mehmet@mehmetfd.dev",
+    "name": "Mehmet F. Dogan"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^4.19.0",
     "@types/node": "20.2.5",
     "@types/react": "18.2.7",
     "@types/react-dom": "18.2.4",
