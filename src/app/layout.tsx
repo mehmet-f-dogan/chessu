@@ -1,6 +1,7 @@
 import './globals.css'
 import { Rubik } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
+import Header from './header'
 
 const rubikFont = Rubik({ subsets: ['latin'] })
 
@@ -20,7 +21,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={globalLayout}>{children}</body>
+        <body className={globalLayout}>
+          <Header />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   )
