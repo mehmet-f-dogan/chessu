@@ -1,5 +1,4 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
-import { getCourse } from "../supabaseRequests";
 
 export async function getUsersCoursesIds(userId: string) {
   if (!userId) return [];
@@ -16,11 +15,13 @@ export async function getUsersCoursesIds(userId: string) {
 
 export async function getOwnedCourses(userId: string) {
   const registeredCourseIds = await getUsersCoursesIds(userId);
-  return await Promise.all(
-    registeredCourseIds.map(async (id) => await getCourse(id))
-  );
+
+  const client = await getSupabaseClient();
+
+  let { data } = await client
+    .from("course")
+    .select("*")
+    .in("id", registeredCourseIds);
+
+  return data ?? [];
 }
-
-
-
-

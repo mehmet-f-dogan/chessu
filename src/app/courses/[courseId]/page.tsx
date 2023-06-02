@@ -1,8 +1,7 @@
 import {
   getCourse,
-  getAllCourses,
   isUserCourseOwner,
-  getCourseChapterContentOverview,
+  getCourseStructure,
 } from "@/lib/supabaseRequests";
 import { auth } from "@clerk/nextjs";
 import Image from "next/image";
@@ -24,11 +23,11 @@ export default async function CoursePage({
 }) {
   const courseId = parseInt(params.courseId);
   const course = await getCourse(courseId);
-  const overviewArray = await getCourseChapterContentOverview(courseId);
+  const overviewArray = await getCourseStructure(courseId);
   const userId = auth().userId!;
   const isOwner = await isUserCourseOwner(userId, courseId);
 
-  if (!course) redirect("/home");
+  if (!course || !overviewArray) redirect("/");
 
   return (
     <div className="container p-8 max-w-prose mx-auto my-8 space-y-4 flex flex-col bg-zinc-900 justify-center">
@@ -56,7 +55,7 @@ export default async function CoursePage({
           >{`Buy for \$${course.price}`}</Link>
         )}
       </Suspense>
-      {overviewArray?.map((chapterData) => {
+      {overviewArray.map((chapterData) => {
         return (
           <div key={chapterData.chapter_id}>
             {isOwner ? (

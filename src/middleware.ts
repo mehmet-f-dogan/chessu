@@ -14,9 +14,15 @@ export default authMiddleware({
 
     const { pathname } = req.nextUrl;
 
-    const contentAccessRegex = /^\/courses\/([^/]+)\/(.+)$/;
+    if (auth.userId && (!pathname || pathname === "" || pathname === "/")) {
+      return NextResponse.rewrite(new URL("/home", req.url));
+    }
+
+    const contentAccessRegex = /\/courses\/([^\/]+)/;
+
     if (contentAccessRegex.test(pathname)) {
-      const [, courseId] = pathname.match(contentAccessRegex)!;
+      const match = pathname.match(contentAccessRegex)!;
+      const courseId = match && match[1];
 
       return isUserCourseOwnerMiddleware(
         auth.userId!,
@@ -28,11 +34,9 @@ export default authMiddleware({
         .then((exists) =>
           exists
             ? NextResponse.next()
-            : NextResponse.redirect("http://localhost:3000/home")
+            : NextResponse.rewrite(new URL("/", req.url))
         )
-        .catch((e) => {
-          NextResponse.redirect("http://localhost:3000/home");
-        });
+        .catch(() => NextResponse.rewrite(new URL("/", req.url)));
     }
 
     return NextResponse.next();

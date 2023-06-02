@@ -3,11 +3,11 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 export async function getNextChapterIds(chapterId: number, courseId: number) {
   const client = await getSupabaseClient();
 
-  let { data, error } = await client
+  let { data } = await client
     .from("course_chapter_content_mapping")
     .select("*")
-    .gt("chapter_id", chapterId)
     .eq("course_id", courseId)
+    .gt("chapter_id", chapterId)
     .order("chapter_id", {
       ascending: true,
     })
@@ -23,11 +23,11 @@ export async function getPreviousChapterIds(
 ) {
   const client = await getSupabaseClient();
 
-  let { data, error } = await client
+  let { data } = await client
     .from("course_chapter_content_mapping")
     .select("*")
-    .lt("chapter_id", chapterId)
     .eq("course_id", courseId)
+    .lt("chapter_id", chapterId)
     .order("chapter_id", {
       ascending: false,
     })
@@ -37,18 +37,14 @@ export async function getPreviousChapterIds(
   return data;
 }
 
-export async function getNextContentIds(
-  contentId: number,
-  chapterId: number,
-  courseId: number
-) {
+export async function getNextContentIds(contentId: number, courseId: number) {
   const client = await getSupabaseClient();
 
-  let { data, error } = await client
+  let { data } = await client
     .from("course_chapter_content_mapping")
     .select("*")
-    .gt("content_id", contentId)
     .eq("course_id", courseId)
+    .gt("content_id", contentId)
     .order("content_id", {
       ascending: true,
     })
@@ -60,16 +56,15 @@ export async function getNextContentIds(
 
 export async function getPreviousContentIds(
   contentId: number,
-  chapterId: number,
   courseId: number
 ) {
   const client = await getSupabaseClient();
 
-  let { data, error } = await client
+  let { data } = await client
     .from("course_chapter_content_mapping")
     .select("*")
-    .lt("content_id", contentId)
     .eq("course_id", courseId)
+    .lt("content_id", contentId)
     .order("content_id", {
       ascending: false,
     })
@@ -79,15 +74,15 @@ export async function getPreviousContentIds(
   return data;
 }
 
-export async function getCourseChapterContentOverview(courseId: number) {
+export async function getCourseStructure(courseId: number) {
   const client = await getSupabaseClient();
 
-  const { data, error } = await client
+  const { data } = await client
     .from("course_chapter_content_mapping")
     .select("chapter_id,content_id")
     .eq("course_id", courseId);
 
-  if (error || !data || data.length == 0) return null;
+  if (!data) return [];
 
   const overviewArrayIds = data.reduce((entries, e) => {
     const foundIndex = entries.findIndex(
@@ -102,29 +97,26 @@ export async function getCourseChapterContentOverview(courseId: number) {
       });
     }
     return entries;
-  }, <{ chapter_id: number; content_ids: number[] }[]>[]);
+  }, [] as { chapter_id: number; content_ids: number[] }[]);
 
-  let overviewArray = await Promise.all(
+  const overviewArray = await Promise.all(
     overviewArrayIds.map(async (contentAndChapterIds) => {
-      const { data: chapter_title, error: chapter_title_error } = await client
+      const { data: chapter_title } = await client
         .from("chapter")
         .select("title")
         .eq("id", contentAndChapterIds.chapter_id)
         .limit(1)
         .single();
 
-      if (!chapter_title || chapter_title_error) throw new Error();
+      if (!chapter_title) throw new Error("No chapter found.");
 
-      const { data: content_ids_and_titles, error: content_titles_error } =
-        await client
-          .from("content")
-          .select("id, title")
-          .in("id", contentAndChapterIds.content_ids)
-          .order("id", {
-            ascending: true,
-          });
+      const { data: content_ids_and_titles } = await client
+        .from("content")
+        .select("id, title")
+        .in("id", contentAndChapterIds.content_ids)
+        .order("id", { ascending: true });
 
-      if (!content_ids_and_titles || content_titles_error) throw new Error();
+      if (!content_ids_and_titles) throw new Error("No content found.");
 
       return {
         chapter_id: contentAndChapterIds.chapter_id,
@@ -132,9 +124,9 @@ export async function getCourseChapterContentOverview(courseId: number) {
         contents: content_ids_and_titles,
       };
     })
-  );
+  ).catch(() => []);
 
   return overviewArray
-    .filter((item) => item)
+    .filter((item) => !!item)
     .sort((a, b) => a.chapter_id - b.chapter_id);
 }

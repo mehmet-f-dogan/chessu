@@ -28,7 +28,7 @@ export default async function ContentPage({
   const chapter = await getChapter(chapterId);
   const content = await getContent(contentId);
 
-  if (!content) redirect("/home");
+  if (!course || !chapter || !content) redirect("/");
 
   return (
     <div className="container p-8 max-w-prose my-8 mx-auto space-y-4 flex flex-col bg-zinc-900 justify-center">
@@ -52,22 +52,20 @@ export default async function ContentPage({
         <h2 className="text-amber-500 text-xl">{content.title}</h2>
         <div className="self-center mt-2 sm:mt-0 sm:items-center">
           <Suspense>
-            {getPreviousContentIds(contentId, chapterId, courseId).then(
-              (ids) => {
-                if (!ids) return <></>;
-                return (
-                  <Link
-                    href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
-                    className="bg-amber-500 transition duration-300 ease-in-out text-black hover:bg-black hover:text-amber-500 p-2"
-                  >
-                    Previous
-                  </Link>
-                );
-              }
-            )}
+            {getPreviousContentIds(contentId, courseId).then((ids) => {
+              if (!ids) return <></>;
+              return (
+                <Link
+                  href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
+                  className="bg-amber-500 transition duration-300 ease-in-out text-black hover:bg-black hover:text-amber-500 p-2"
+                >
+                  Previous
+                </Link>
+              );
+            })}
           </Suspense>
           <Suspense>
-            {getNextContentIds(contentId, chapterId, courseId).then((ids) => {
+            {getNextContentIds(contentId, courseId).then((ids) => {
               if (!ids) return <></>;
               return (
                 <Link

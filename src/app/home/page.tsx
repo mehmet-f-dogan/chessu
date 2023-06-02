@@ -17,7 +17,7 @@ export default function HomePage() {
                 courses.map((course) => {
                   return (
                     <li
-                      className="flex justify-between items-center border border-amber-500"
+                      className="flex justify-between items-center border bg-zinc-950 border-amber-500"
                       key={course.id}
                     >
                       <Link
@@ -27,9 +27,6 @@ export default function HomePage() {
                         {course.title}
                       </Link>
                       <div className="flex">
-                        {
-                          //<h3>5%</h3>
-                        }
                         <button className="bg-amber-500 text-black p-2">
                           Study
                         </button>

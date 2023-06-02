@@ -17,7 +17,7 @@ export async function isUserCourseOwner(userId: string, courseId: number) {
 export async function isUserCourseOwnerMiddleware(
   userId: string,
   courseId: number,
-  token: Promise<string | null>
+  token: Promise<string | null | undefined> | string | null | undefined
 ) {
   const tokenResolved = await token;
   if (!token) return false;
@@ -41,17 +41,14 @@ export async function courseChapterContentMappingExists(
 ) {
   const client = await getSupabaseClient();
 
-  const { data, error } = await client
+  const { data } = await client
     .from("course_chapter_content_mapping")
     .select("*")
     .eq("course_id", courseId)
     .eq("chapter_id", chapterId)
     .eq("content_id", contentId)
     .limit(1)
-
     .single();
-
-  if (error) return false;
 
   return !!data;
 }

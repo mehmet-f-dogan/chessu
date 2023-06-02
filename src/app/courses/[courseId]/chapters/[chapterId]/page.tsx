@@ -1,6 +1,6 @@
 import {
   getCourse,
-  getCourseChapterContentOverview,
+  getCourseStructure,
   getNextChapterIds,
   getPreviousChapterIds,
 } from "@/lib/supabaseRequests";
@@ -18,12 +18,12 @@ export default async function ChapterPage({ params }: { params: ChapterPage }) {
   const chapterId = parseInt(params.chapterId);
 
   const course = await getCourse(courseId);
-  if (!course) redirect("/home");
-  const overviewArray = await getCourseChapterContentOverview(courseId);
+  if (!course) redirect("/");
+  const overviewArray = await getCourseStructure(courseId);
   const currentChapter = overviewArray?.find(
     (item) => item.chapter_id == chapterId
   );
-  if (!currentChapter) redirect("/home");
+  if (!currentChapter) redirect("/");
 
   return (
     <div className="container p-8 max-w-prose my-8 mx-auto space-y-4 flex flex-col bg-zinc-900 justify-center">
