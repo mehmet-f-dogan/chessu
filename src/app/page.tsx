@@ -1,28 +1,30 @@
-import { auth } from '@clerk/nextjs';
-import LandingPage from './landing';
+import { auth } from "@clerk/nextjs";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  const { userId, user } = auth();
-  const primaryEmail = "mehmet@mehmetfd.dev"
-
-  //const primaryEmail = user?.emailAddresses[0].emailAddress
+export default function LandingPage() {
+  let { userId } = auth();
+  if (userId) redirect("/home");
   return (
-    <main >
-      {userId ?
-        <div className='flex flex-col justify-center items-center pt-8 md:p-8 md:flex-1'>
-          <h1 className='text-6xl text-center break-all'>Hello, {primaryEmail}</h1>
-          <section className='bg-gray-900 m-2 p-8 lg:mt-12 md:rounded-md w-full md:w-11/12 lg:w-2/3 xl:w-1/2'>
-            <h2 className='text-4xl mb-4'>Your Courses</h2>
-            <ul className=''>
-              <li className='text-2xl'>Course 1</li>
-              <li className='text-2xl'>Course 2</li>
-              <li className='text-2xl'>Course 3</li>
-              <li className='text-2xl'>Course 4</li>
-              <li className='text-2xl'>Course 5</li>
-            </ul>
-          </section>
-        </div>
-        : LandingPage()}
-    </main>
-  )
+    <div className="flex flex-col justify-center items-center p-8 flex-1 text-center">
+      <h1 className="text-6xl">
+        Welcome to <span className="text-amber-500">ChessU</span>!
+      </h1>
+      <h2 className="text-4xl">
+        This is a chess course platform that is a WIP.
+      </h2>
+      <h3 className="text-xl mt-4">Supported features include:</h3>
+      <ul>
+        <li className="text-2xl text-rose-500">Authentication</li>
+        {/* <li className="text-2xl text-lime-500">Payments</li>
+                <li className="text-2xl text-sky-500">Videos</li> */}
+      </ul>
+      <Link
+        href="/sign-in"
+        className="border border-amber-500  px-4 py-2 mt-8 hover:bg-amber-500 hover:text-black transition duration-300 ease-in-out"
+      >
+        Sign in & Discover
+      </Link>
+    </div>
+  );
 }
