@@ -146,6 +146,7 @@ export async function getStudyLocator(userId: string, courseId: number) {
     .select("*")
     .not("id", "in", `(${userCompletionsData.mapping_ids.join(",")})`)
     .order("content_id", { ascending: true })
+    .eq("course_id", courseId)
     .limit(1)
     .single();
 
