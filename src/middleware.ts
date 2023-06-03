@@ -18,7 +18,7 @@ export default authMiddleware({
       return NextResponse.rewrite(new URL("/home", req.url));
     }
 
-    const contentAccessRegex = /\/courses\/([^\/]+)/;
+    const contentAccessRegex = /\/courses\/([^\/]+)\/[^\/]+/;
 
     if (contentAccessRegex.test(pathname)) {
       const match = pathname.match(contentAccessRegex)!;

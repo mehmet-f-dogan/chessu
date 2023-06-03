@@ -1,6 +1,7 @@
 import {
   getChapter,
   getContent,
+  getContentCompletionStatus,
   getCourse,
   getNextContentIds,
   getPreviousContentIds,
@@ -8,7 +9,9 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-
+import { auth } from "@clerk/nextjs";
+import { BsFillCheckCircleFill } from "react-icons/bs";
+import { checkableLabel } from "@/app/components/checkableLabel";
 type ContentPageProps = {
   courseId: string;
   chapterId: string;
@@ -27,6 +30,7 @@ export default async function ContentPage({
   const course = await getCourse(courseId);
   const chapter = await getChapter(chapterId);
   const content = await getContent(contentId);
+  const userId = auth().userId!;
 
   if (!course || !chapter || !content) redirect("/");
 
@@ -44,13 +48,13 @@ export default async function ContentPage({
       >
         {chapter.title}
       </Link>
-      {
-        //<h3 className="text-amber-500">{content.title}</h3>
-      }
-
-      <div className="flex flex-col flex-1 sm:flex-row sm:justify-between sm:items-center">
-        <h2 className="text-amber-500 text-xl">{content.title}</h2>
-        <div className="self-center mt-2 sm:mt-0 sm:items-center">
+      <div className="flex justify-between items-start">
+        <div className="flex">
+          {await checkableLabel(content.title
+                  ,"","text-lime-500","text-xl",getContentCompletionStatus(userId, content.id)
+                  )}
+        </div>
+        <div className="flex">
           <Suspense>
             {getPreviousContentIds(contentId, courseId).then((ids) => {
               if (!ids) return <></>;

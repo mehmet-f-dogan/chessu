@@ -1,8 +1,9 @@
 import { auth } from "@clerk/nextjs";
 
-import { getOwnedCourses } from "@/lib/supabaseRequests";
+import { getCourseCompletionStatus, getOwnedCourses, getStudyLocator } from "@/lib/supabaseRequests";
 import { Suspense } from "react";
 import Link from "next/link";
+import { checkableLabel } from "../components/checkableLabel";
 
 export default function HomePage() {
   let userId = auth().userId!;
@@ -14,22 +15,24 @@ export default function HomePage() {
           <Suspense>
             <ul className="space-y-2">
               {getOwnedCourses(userId).then((courses) =>
-                courses.map((course) => {
+                courses.map(async (course) => {
                   return (
                     <li
-                      className="flex justify-between items-center border bg-zinc-950 border-amber-500"
+                      className="flex justify-between items-center border bg-zinc-950 border-white"
                       key={course.id}
                     >
                       <Link
-                        className="underline pl-2"
+                        className=" pl-2"
                         href={`/courses/${course.id}`}
                       >
-                        {course.title}
+                        {await checkableLabel(course.title
+                  ,"underline","underline text-lime-500","text-xl",getCourseCompletionStatus(userId, course.id)
+                  )}
                       </Link>
                       <div className="flex">
-                        <button className="bg-amber-500 text-black p-2">
+                        <Link href={await getStudyLocator(userId, course.id)} className="bg-white text-black p-2">
                           Study
-                        </button>
+                        </Link>
                       </div>
                     </li>
                   );
