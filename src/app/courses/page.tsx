@@ -1,4 +1,7 @@
-import { getAllCourses, getCourseCompletionStatus } from "@/lib/supabaseRequests";
+import {
+  getAllCourses,
+  getCourseCompletionStatus,
+} from "@/lib/supabaseRequests";
 import Link from "next/link";
 import Image from "next/image";
 import { checkableLabel } from "@/app/components/checkableLabel";
@@ -23,10 +26,13 @@ export default async function CoursesPage() {
                 className="w-[400px]"
               />
               <div className="flex flex-col p-4 space-y-4 items-center justify-center md:items-start">
-                
-{await checkableLabel(course.title
-                  ,"text-4xl font-medium","text-4xl font-medium text-lime-500","text-5xl",getCourseCompletionStatus(userId, course.id)
-                  )}
+                {await checkableLabel(
+                  course.title,
+                  "text-4xl font-medium",
+                  "text-4xl font-medium text-lime-500",
+                  "text-5xl",
+                  getCourseCompletionStatus(userId, course.id)
+                )}
 
                 <p>{course.subtitle}</p>
                 <Link

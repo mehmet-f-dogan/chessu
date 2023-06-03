@@ -12,7 +12,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { BsFillCheckCircleFill } from "react-icons/bs";
 
 type CoursePageProps = {
   courseId: string;
@@ -30,10 +29,10 @@ export default async function CoursePage({
   const isOwner = await isUserCourseOwner(userId, courseId);
   if (!course || !overviewArray) redirect("/");
 
-  const studyLocation = await getStudyLocator(userId,course.id)
+  const studyLocation = await getStudyLocator(userId, course.id);
 
   return (
-    <div className="container p-8 max-w-prose mx-auto my-8 space-y-4 flex flex-col bg-zinc-900 justify-center">
+    <div className="container p-8 max-w-prose m-auto space-y-4 flex flex-col bg-zinc-900 justify-center">
       <Image
         width={300}
         height={300}
@@ -41,7 +40,13 @@ export default async function CoursePage({
         className="w-[300px] self-center"
         alt={`${course.title} course image`}
       />
-      {await checkableLabel(course.title, "text-3xl text-amber-500", "text-3xl text-lime-500", "text-4xl", getCourseCompletionStatus(userId, courseId))}
+      {await checkableLabel(
+        course.title,
+        "text-3xl text-amber-500",
+        "text-3xl text-lime-500",
+        "text-4xl",
+        getCourseCompletionStatus(userId, courseId)
+      )}
       <h2 className={`text-zinc-100`}>{course.subtitle}</h2>
       <p className="text-zinc-300">{course.description}</p>
       <Suspense
@@ -74,15 +79,23 @@ export default async function CoursePage({
               <Link
                 href={`/courses/${courseId}/chapters/${chapterData.chapter_id}`}
               >
-                {await checkableLabel("" + (index + 1)+ ". " +chapterData.chapter_title
-                  ,"text-2xl text-amber-500 hover:underline","text-2xl text-lime-500 hover:underline","text-3xl",getChapterCompletionStatus(userId, chapterData.chapter_id)
-                  )}
+                {await checkableLabel(
+                  "" + (index + 1) + ". " + chapterData.chapter_title,
+                  "text-2xl text-amber-500 hover:underline",
+                  "text-2xl text-lime-500 hover:underline",
+                  "text-3xl",
+                  getChapterCompletionStatus(userId, chapterData.chapter_id)
+                )}
               </Link>
             ) : (
               <>
-                {await checkableLabel("" + (index + 1)+ ". " +chapterData.chapter_title
-                  ,"text-2xl text-amber-500","text-2xl text-lime-500","text-3xl",getChapterCompletionStatus(userId, chapterData.chapter_id)
-                  )}
+                {await checkableLabel(
+                  "" + (index + 1) + ". " + chapterData.chapter_title,
+                  "text-2xl text-amber-500",
+                  "text-2xl text-lime-500",
+                  "text-3xl",
+                  getChapterCompletionStatus(userId, chapterData.chapter_id)
+                )}
               </>
             )}
           </div>

@@ -29,7 +29,8 @@ export async function getCourseCompletionStatus(
   return (
     userCompletionsData.mapping_ids.filter((mapping_id) =>
       contentMappingIdDataFlat.includes(mapping_id)
-    ).length == contentMappingIdDataFlat.length
+    ).length == contentMappingIdDataFlat.length &&
+    contentMappingIdDataFlat.length != 0
   );
 }
 
@@ -62,7 +63,8 @@ export async function getChapterCompletionStatus(
   return (
     userCompletionsData.mapping_ids.filter((mapping_id) =>
       contentMappingIdDataFlat.includes(mapping_id)
-    ).length == contentMappingIdDataFlat.length
+    ).length == contentMappingIdDataFlat.length &&
+    contentMappingIdDataFlat.length != 0
   );
 }
 
@@ -127,10 +129,7 @@ export async function setContentCompletionStatus(
   await client.from("completions").insert(userCompletionsData);
 }
 
-export async function getStudyLocator(
-  userId:string,
-  courseId:number
-){
+export async function getStudyLocator(userId: string, courseId: number) {
   const client = await getSupabaseClient();
 
   let { data: userCompletionsData } = await client
@@ -140,18 +139,17 @@ export async function getStudyLocator(
     .limit(1)
     .single();
 
-  if (!userCompletionsData) userCompletionsData = {mapping_ids:[]};
+  if (!userCompletionsData) userCompletionsData = { mapping_ids: [] };
 
   const { data: contentMappingIdData } = await client
     .from("course_chapter_content_mapping")
     .select("*")
-    .not("id", "in",`(${userCompletionsData.mapping_ids.join(',')})`)
-    .order("content_id",{ascending:true})
+    .not("id", "in", `(${userCompletionsData.mapping_ids.join(",")})`)
+    .order("content_id", { ascending: true })
     .limit(1)
     .single();
 
   if (!contentMappingIdData) return `/courses/${courseId}`;
 
-  return `/courses/${courseId}/chapters/${contentMappingIdData.chapter_id}/contents/${contentMappingIdData.content_id}`
-
+  return `/courses/${courseId}/chapters/${contentMappingIdData.chapter_id}/contents/${contentMappingIdData.content_id}`;
 }

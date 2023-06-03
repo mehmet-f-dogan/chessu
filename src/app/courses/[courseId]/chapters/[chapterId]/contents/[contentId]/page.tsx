@@ -10,7 +10,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs";
-import { BsFillCheckCircleFill } from "react-icons/bs";
 import { checkableLabel } from "@/app/components/checkableLabel";
 type ContentPageProps = {
   courseId: string;
@@ -50,9 +49,13 @@ export default async function ContentPage({
       </Link>
       <div className="flex justify-between items-start">
         <div className="flex">
-          {await checkableLabel(content.title
-                  ,"","text-lime-500","text-xl",getContentCompletionStatus(userId, content.id)
-                  )}
+          {await checkableLabel(
+            content.title,
+            "",
+            "text-lime-500",
+            "text-xl",
+            getContentCompletionStatus(userId, content.id)
+          )}
         </div>
         <div className="flex">
           <Suspense>

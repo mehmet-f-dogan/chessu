@@ -1,6 +1,10 @@
 import { auth } from "@clerk/nextjs";
 
-import { getCourseCompletionStatus, getOwnedCourses, getStudyLocator } from "@/lib/supabaseRequests";
+import {
+  getCourseCompletionStatus,
+  getOwnedCourses,
+  getStudyLocator,
+} from "@/lib/supabaseRequests";
 import { Suspense } from "react";
 import Link from "next/link";
 import { checkableLabel } from "../components/checkableLabel";
@@ -21,16 +25,20 @@ export default function HomePage() {
                       className="flex justify-between items-center border bg-zinc-950 border-white"
                       key={course.id}
                     >
-                      <Link
-                        className=" pl-2"
-                        href={`/courses/${course.id}`}
-                      >
-                        {await checkableLabel(course.title
-                  ,"underline","underline text-lime-500","text-xl",getCourseCompletionStatus(userId, course.id)
-                  )}
+                      <Link className=" pl-2" href={`/courses/${course.id}`}>
+                        {await checkableLabel(
+                          course.title,
+                          "underline",
+                          "underline text-lime-500",
+                          "text-xl",
+                          getCourseCompletionStatus(userId, course.id)
+                        )}
                       </Link>
                       <div className="flex">
-                        <Link href={await getStudyLocator(userId, course.id)} className="bg-white text-black p-2">
+                        <Link
+                          href={await getStudyLocator(userId, course.id)}
+                          className="bg-white text-black p-2"
+                        >
                           Study
                         </Link>
                       </div>
