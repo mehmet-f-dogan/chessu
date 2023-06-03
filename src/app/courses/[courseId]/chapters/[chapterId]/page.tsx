@@ -12,12 +12,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-type ChapterPage = {
+type ChapterPageParams = {
   courseId: string;
   chapterId: string;
 };
 
-export default async function ChapterPage({ params }: { params: ChapterPage }) {
+export default async function ChapterPage({
+  params,
+}: {
+  params: ChapterPageParams;
+}) {
   const courseId = parseInt(params.courseId);
   const chapterId = parseInt(params.chapterId);
 

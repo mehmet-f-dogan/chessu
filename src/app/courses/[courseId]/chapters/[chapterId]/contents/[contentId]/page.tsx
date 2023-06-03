@@ -11,11 +11,23 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs";
 import { checkableLabel } from "@/app/components/checkableLabel";
+import VideoContentContainer from "@/app/components/content-page/videoContentContainer";
 type ContentPageProps = {
   courseId: string;
   chapterId: string;
   contentId: string;
 };
+
+function getContentContainer(contentType: string, contentData: any) {
+  switch (contentType) {
+    case "video":
+      return (
+        <VideoContentContainer videoUrl={contentData.videoUrl as string} />
+      );
+    default:
+      return <></>;
+  }
+}
 
 export default async function ContentPage({
   params,
@@ -87,7 +99,7 @@ export default async function ContentPage({
         </div>
       </div>
 
-      <p>{JSON.stringify(content.data)}</p>
+      {getContentContainer(content.type, content.data)}
     </div>
   );
 }
