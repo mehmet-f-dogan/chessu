@@ -1,5 +1,7 @@
-export * from "@/lib/supabase-request-implementations/basicRequestImplementations";
-export * from "@/lib/supabase-request-implementations/viewRequestImplementations";
-export * from "@/lib/supabase-request-implementations/authRequestImplementations";
-export * from "@/lib/supabase-request-implementations/userRequestImplementations";
-export * from "@/lib/supabase-request-implementations/completionRequestImplementations";
+import "server-only";
+
+export * from "@/lib/database-request-implementations/basicRequests";
+export * from "@/lib/database-request-implementations/viewRequests";
+export * from "@/lib/database-request-implementations/authRequests";
+export * from "@/lib/database-request-implementations/userRequests";
+export * from "@/lib/database-request-implementations/completionRequests";

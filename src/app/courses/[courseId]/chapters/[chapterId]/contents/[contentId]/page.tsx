@@ -10,19 +10,29 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs";
-import { checkableLabel } from "@/app/components/checkableLabel";
-import VideoContentContainer from "@/app/components/content-page/videoContentContainer";
+import { CheckableLabel } from "@/app/components/checkableLabel";
+import VideoContentContainer from "./components/videoContentContainer";
+import {
+  ContentData,
+  VideoContentData,
+} from "@/lib/content.types";
 type ContentPageProps = {
   courseId: string;
   chapterId: string;
   contentId: string;
 };
 
-function getContentContainer(contentType: string, contentData: any) {
+function getContentContainer(
+  contentType: string,
+  contentData: ContentData
+) {
   switch (contentType) {
     case "video":
+      contentData = contentData as VideoContentData;
       return (
-        <VideoContentContainer videoUrl={contentData.videoUrl as string} />
+        <VideoContentContainer
+          videoUrl={contentData.videoUrl}
+        />
       );
     default:
       return <></>;
@@ -38,45 +48,55 @@ export default async function ContentPage({
   const chapterId = parseInt(params.chapterId);
   const contentId = parseInt(params.contentId);
 
-  const course = await getCourse(courseId);
-  const chapter = await getChapter(chapterId);
-  const content = await getContent(contentId);
+  const coursePromise = getCourse(courseId);
+  const chapterPromise = getChapter(chapterId);
+  const contentPromise = getContent(contentId);
+
+  const [course, chapter, content] = await Promise.all([
+    coursePromise,
+    chapterPromise,
+    contentPromise,
+  ]);
+
   const userId = auth().userId!;
 
   if (!course || !chapter || !content) redirect("/");
 
   return (
-    <div className="container p-8 max-w-prose my-8 mx-auto space-y-4 flex flex-col bg-zinc-900 justify-center">
+    <div className="container mx-auto mt-0 flex max-w-prose flex-col justify-center space-y-4 bg-zinc-900 p-8">
       <Link
         href={`/courses/${courseId}`}
-        className="text-2xl hover:underline bg-zinc-950 p-2"
+        className="bg-zinc-950 p-2 text-2xl hover:underline"
       >
         {course.title}
       </Link>
       <Link
         href={`/courses/${courseId}/chapters/${chapterId}`}
-        className="text-xl hover:underline bg-zinc-950 p-2"
+        className="bg-zinc-950 p-2 text-xl hover:underline"
       >
         {chapter.title}
       </Link>
-      <div className="flex justify-between items-start">
-        <div className="flex">
-          {await checkableLabel(
-            content.title,
-            "",
-            "text-lime-500",
-            "text-xl",
-            getContentCompletionStatus(userId, content.id)
+      <div className="flex items-start justify-between">
+        <CheckableLabel
+          labelText={content.title}
+          checkedLabelClassNames="text-lime-500"
+          resolvingPromise={getContentCompletionStatus(
+            userId,
+            content.id
           )}
-        </div>
-        <div className="flex">
+          checkSize="text-xl"
+        />
+        <div className="">
           <Suspense>
-            {getPreviousContentIds(contentId, courseId).then((ids) => {
+            {getPreviousContentIds(
+              contentId,
+              courseId
+            ).then((ids) => {
               if (!ids) return <></>;
               return (
                 <Link
                   href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
-                  className="bg-amber-500 transition duration-300 ease-in-out text-black hover:bg-black hover:text-amber-500 p-2"
+                  className="bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-amber-500"
                 >
                   Previous
                 </Link>
@@ -84,22 +104,27 @@ export default async function ContentPage({
             })}
           </Suspense>
           <Suspense>
-            {getNextContentIds(contentId, courseId).then((ids) => {
-              if (!ids) return <></>;
-              return (
-                <Link
-                  href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
-                  className="bg-amber-500 transition duration-300 ease-in-out text-black hover:bg-black hover:text-amber-500 ml-2 p-2"
-                >
-                  Next
-                </Link>
-              );
-            })}
+            {getNextContentIds(contentId, courseId).then(
+              (ids) => {
+                if (!ids) return <></>;
+                return (
+                  <Link
+                    href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
+                    className="ml-2 bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-amber-500"
+                  >
+                    Next
+                  </Link>
+                );
+              }
+            )}
           </Suspense>
         </div>
       </div>
 
-      {getContentContainer(content.type, content.data)}
+      {getContentContainer(
+        content.type,
+        content.data as ContentData
+      )}
     </div>
   );
 }

@@ -1,4 +1,11 @@
-import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getSupabaseClient as getSupabaseClientConstructor } from "@/lib/supabaseClient";
+
+function getSupabaseClient() {
+  return getSupabaseClientConstructor({
+    cache: true,
+    authorize: false,
+  });
+}
 
 export async function getCourse(courseId: number) {
   const client = await getSupabaseClient();
@@ -42,5 +49,6 @@ export async function getContent(contentId: number) {
 export async function getAllCourses() {
   const client = await getSupabaseClient();
   const { data } = await client.from("course").select("*");
+  //console.log(data)
   return data ?? [];
 }

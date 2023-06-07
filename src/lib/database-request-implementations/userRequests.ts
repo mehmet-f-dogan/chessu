@@ -1,4 +1,11 @@
-import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getSupabaseClient as getSupabaseClientConstructor } from "@/lib/supabaseClient";
+
+function getSupabaseClient() {
+  return getSupabaseClientConstructor({
+    authorize: true,
+    cache: false,
+  });
+}
 
 export async function getUsersCoursesIds(userId: string) {
   if (!userId) return [];
@@ -14,7 +21,9 @@ export async function getUsersCoursesIds(userId: string) {
 }
 
 export async function getOwnedCourses(userId: string) {
-  const registeredCourseIds = await getUsersCoursesIds(userId);
+  const registeredCourseIds = await getUsersCoursesIds(
+    userId
+  );
 
   const client = await getSupabaseClient();
 

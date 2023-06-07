@@ -1,42 +1,20 @@
-import { authMiddleware } from "@clerk/nextjs/server";
+import { authMiddleware } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
-import { isUserCourseOwnerMiddleware } from "./lib/supabaseRequests";
 
 export default authMiddleware({
-  publicRoutes: ["/"],
+  publicRoutes: ["/", "/api/stripe/handle_webhook"],
 
-  afterAuth(auth, req, evt) {
+  afterAuth(auth, req) {
     if (!auth.userId && !auth.isPublicRoute) {
       const signInUrl = new URL("/sign-in", req.url);
       signInUrl.searchParams.set("redirect_url", req.url);
       return NextResponse.redirect(signInUrl);
     }
 
-    const { pathname } = req.nextUrl;
-
-    if (auth.userId && (!pathname || pathname === "" || pathname === "/")) {
-      return NextResponse.rewrite(new URL("/home", req.url));
-    }
-
-    const contentAccessRegex = /\/courses\/([^\/]+)\/[^\/]+/;
-
-    if (contentAccessRegex.test(pathname)) {
-      const match = pathname.match(contentAccessRegex)!;
-      const courseId = match && match[1];
-
-      return isUserCourseOwnerMiddleware(
-        auth.userId!,
-        parseInt(courseId),
-        auth.getToken({
-          template: "supabase",
-        })
-      )
-        .then((exists) =>
-          exists
-            ? NextResponse.next()
-            : NextResponse.rewrite(new URL("/", req.url))
-        )
-        .catch(() => NextResponse.rewrite(new URL("/", req.url)));
+    if (auth.userId && auth.isPublicRoute) {
+      return NextResponse.redirect(
+        new URL("/home", req.url)
+      );
     }
 
     return NextResponse.next();
@@ -44,5 +22,9 @@ export default authMiddleware({
 });
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    "/((?!.*\\..*|_next).*)",
+    "/",
+    "/(api|trpc)(.*)",
+  ],
 };

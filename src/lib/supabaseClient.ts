@@ -2,34 +2,86 @@ import { createClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/database.types";
 import { auth } from "@clerk/nextjs";
 
+const CACHE_REVALIDATION_DURATION_SECS = 5 * 60;
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+const supabasePublicKey =
+  process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_KEY!;
 
-export async function getSupabaseClient(supabaseAccessToken?: string | null) {
-  if (!supabaseAccessToken)
-    supabaseAccessToken = await auth().getToken({ template: "supabase" });
-  /*if (!supabaseAccessToken){
-    supabaseAccessToken = await useAuth().getToken({ template: "supabase" });
-  }*/
+type getSupabaseClientParameters = {
+  authorize: boolean;
+  cache: boolean;
+  cacheRevalidateAfterSeconds?: number;
+};
 
-  if (!supabaseAccessToken)
-    return createClient<Database>(supabaseUrl, supabaseServiceKey!, {
-      global: {
-        fetch: (...args) => fetch(...args),
-      },
-      auth: {
-        persistSession: false,
-      },
-    });
+export async function getSupabaseClient({
+  authorize,
+  cache,
+  cacheRevalidateAfterSeconds,
+}: getSupabaseClientParameters) {
+  if (authorize && cache)
+    throw new Error("Cannot cache authorized requests.");
 
-  return createClient<Database>(supabaseUrl, supabaseKey, {
+  const clientConfig = {
     global: {
-      headers: { Authorization: `Bearer ${supabaseAccessToken}` },
-      fetch: (...args) => fetch(...args),
-    },
+      autoRefreshToken: false,
+      fetch: (
+        ...args: [
+          input: RequestInfo | URL,
+          init?: RequestInit | undefined
+        ]
+      ) => {
+        return fetch(args[0], {
+          ...args[1],
+          next: {
+            revalidate: 0,
+          },
+        });
+      },
+    } as any,
     auth: {
       persistSession: false,
     },
-  });
+  };
+
+  if (authorize) {
+    clientConfig.global.headers = {
+      Authorization: `Bearer ${await auth().getToken({
+        template: "supabase",
+      })}`,
+    };
+  }
+
+  if (cache) {
+    clientConfig.global.fetch = (
+      ...args: [
+        input: RequestInfo | URL,
+        init?: RequestInit | undefined
+      ]
+    ) => {
+      return fetch(args[0], {
+        ...args[1],
+        next: {
+          revalidate:
+            cacheRevalidateAfterSeconds ??
+            CACHE_REVALIDATION_DURATION_SECS,
+        },
+      });
+    };
+  }
+
+  if (!authorize) {
+    return createClient<Database>(
+      supabaseUrl,
+      supabaseServiceKey,
+      clientConfig
+    );
+  }
+  return createClient<Database>(
+    supabaseUrl,
+    supabasePublicKey,
+    clientConfig
+  );
 }

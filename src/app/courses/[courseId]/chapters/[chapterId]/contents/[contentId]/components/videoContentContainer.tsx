@@ -10,7 +10,7 @@ export default function VideoContentContainer({
       <div className="aspect-video">
         <iframe
           src={videoUrl}
-          className="w-full h-full border-none"
+          className="h-full w-full border-none"
           allow="autoplay; fullscreen;"
         />
       </div>

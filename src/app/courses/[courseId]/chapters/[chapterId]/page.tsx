@@ -1,4 +1,4 @@
-import { checkableLabel } from "@/app/components/checkableLabel";
+import { CheckableLabel } from "@/app/components/checkableLabel";
 import {
   getChapterCompletionStatus,
   getContentCompletionStatus,
@@ -25,9 +25,15 @@ export default async function ChapterPage({
   const courseId = parseInt(params.courseId);
   const chapterId = parseInt(params.chapterId);
 
-  const course = await getCourse(courseId);
+  const coursePromise = getCourse(courseId);
+  const overviewArrayPromise = getCourseStructure(courseId);
+  const [course, overviewArray] = await Promise.all([
+    coursePromise,
+    overviewArrayPromise,
+  ]);
+
   if (!course) redirect("/");
-  const overviewArray = await getCourseStructure(courseId);
+
   const currentChapter = overviewArray?.find(
     (item) => item.chapter_id == chapterId
   );
@@ -36,31 +42,37 @@ export default async function ChapterPage({
   const userId = auth().userId!;
 
   return (
-    <div className="container p-8 max-w-prose my-8 mx-auto space-y-4 flex flex-col bg-zinc-900 justify-center">
+    <div className="container mx-auto mt-0 flex max-w-prose flex-col justify-center space-y-4 bg-zinc-900 p-8">
       <Link
         href={`/courses/${courseId}`}
-        className="text-2xl hover:underline bg-zinc-950 p-2"
+        className="bg-zinc-950 p-2 text-2xl hover:underline"
       >
         {course.title}
       </Link>
       {
         <>
-          <div className="flex flex-col flex-1 sm:flex-row sm:justify-between sm:items-center">
-            {await checkableLabel(
-              currentChapter.chapter_title,
-              "text-xl text-amber-500",
-              "text-xl text-lime-500",
-              "text-2xl",
-              getChapterCompletionStatus(userId, currentChapter.chapter_id)
-            )}
-            <div className="self-center mt-2 sm:mt-0 sm:items-center">
+          <div className="flex items-start justify-between">
+            <CheckableLabel
+              checkSize="text-2xl"
+              uncheckedLabelClassNames="text-xl"
+              checkedLabelClassNames="text-xl text-lime-500"
+              resolvingPromise={getChapterCompletionStatus(
+                userId,
+                currentChapter.chapter_id
+              ).then((value) => value === 1)}
+              labelText={currentChapter.chapter_title}
+            />
+            <div className="">
               <Suspense>
-                {getPreviousChapterIds(chapterId, courseId).then((ids) => {
+                {getPreviousChapterIds(
+                  chapterId,
+                  courseId
+                ).then((ids) => {
                   if (!ids) return <></>;
                   return (
                     <Link
                       href={`/courses/${courseId}/chapters/${ids.chapter_id}`}
-                      className="bg-amber-500 transition duration-300 ease-in-out text-black hover:bg-black hover:text-amber-500 p-2"
+                      className="bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-white"
                     >
                       Previous
                     </Link>
@@ -68,12 +80,15 @@ export default async function ChapterPage({
                 })}
               </Suspense>
               <Suspense>
-                {getNextChapterIds(chapterId, courseId).then((ids) => {
+                {getNextChapterIds(
+                  chapterId,
+                  courseId
+                ).then((ids) => {
                   if (!ids) return <></>;
                   return (
                     <Link
                       href={`/courses/${courseId}/chapters/${ids.chapter_id}`}
-                      className="bg-amber-500 transition duration-300 ease-in-out text-black hover:bg-black hover:text-amber-500 ml-2 p-2"
+                      className="ml-2 bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-white"
                     >
                       Next
                     </Link>
@@ -83,23 +98,30 @@ export default async function ChapterPage({
             </div>
           </div>
 
-          {currentChapter.contents.map(async (content) => {
-            return (
-              <Link
-                key={content.id}
-                href={`/courses/${courseId}/chapters/${currentChapter.chapter_id}/contents/${content.id}`}
-                className=" bg-zinc-950 p-2 w-full"
-              >
-                {await checkableLabel(
-                  content.title,
-                  "hover:underline",
-                  "text-lime-500 hover:underline",
-                  "text-xl",
-                  getContentCompletionStatus(userId, content.id)
-                )}
-              </Link>
-            );
-          })}
+          {currentChapter.contents.map(
+            async (content, id) => {
+              return (
+                <Link
+                  key={content.id}
+                  href={`/courses/${courseId}/chapters/${currentChapter.chapter_id}/contents/${content.id}`}
+                  className=" w-full bg-zinc-950 p-2"
+                >
+                  <CheckableLabel
+                    checkSize="text-xl"
+                    uncheckedLabelClassNames="hover:underline"
+                    checkedLabelClassNames="text-lime-500 hover:underline"
+                    resolvingPromise={getContentCompletionStatus(
+                      userId,
+                      content.id
+                    )}
+                    labelText={
+                      id + 1 + ". " + content.title
+                    }
+                  />
+                </Link>
+              );
+            }
+          )}
         </>
       }
     </div>

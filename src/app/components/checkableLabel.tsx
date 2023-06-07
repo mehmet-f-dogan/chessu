@@ -1,25 +1,39 @@
-import { BsFillCheckCircleFill } from "react-icons/bs";
+import { Suspense } from "react";
+import { CheckedLabel } from "./checkedLabel";
 
-export async function checkableLabel(
-  labelText: string,
-  uncheckedLabelClassNames: string,
-  checkedLabelClassNames: string,
-  checkSize: string,
-  resolvingPromise: Promise<boolean>
+type CheckableLabelParams = {
+  labelText?: string;
+  uncheckedLabelClassNames?: string;
+  checkedLabelClassNames?: string;
+  checkSize: string;
+  resolvingPromise: Promise<boolean>;
+};
+
+export function CheckableLabel(
+  props: CheckableLabelParams
 ) {
-  const shouldBeChecked = await resolvingPromise;
+  const defaultElement = (
+    <span className={props.uncheckedLabelClassNames}>
+      {props.labelText}
+    </span>
+  );
+  const shouldBeChecked = props.resolvingPromise;
+
   return (
     <div className="flex items-center">
-      {shouldBeChecked ? (
-        <>
-          <span className={checkedLabelClassNames}>{labelText}</span>
-          <BsFillCheckCircleFill
-            className={"text-lime-500 mx-2 " + checkSize}
-          />
-        </>
-      ) : (
-        <span className={uncheckedLabelClassNames}>{labelText}</span>
-      )}
+      <Suspense fallback={defaultElement}>
+        {shouldBeChecked.then((value) => {
+          return value ? (
+            <CheckedLabel
+              checkSize={props.checkSize}
+              classNames={props.checkedLabelClassNames}
+              labelText={props.labelText}
+            />
+          ) : (
+            defaultElement
+          );
+        })}
+      </Suspense>
     </div>
   );
 }
