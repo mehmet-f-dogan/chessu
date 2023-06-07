@@ -9,7 +9,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { CheckableLabel } from "../components/checkableLabel";
 
-export const runtime = "edge";
 
 export default async function HomePage() {
   let userId = auth().userId!;
@@ -69,11 +68,11 @@ export default async function HomePage() {
                           className="bg-white p-2 text-black"
                         >
                           {courseCompletionRatio == 0 ||
-                          courseCompletionRatio == 1
+                            courseCompletionRatio == 1
                             ? "Study"
                             : `Continue (${Math.floor(
-                                courseCompletionRatio * 100
-                              )}%)`}
+                              courseCompletionRatio * 100
+                            )}%)`}
                         </Link>
                       </div>
                     </li>
