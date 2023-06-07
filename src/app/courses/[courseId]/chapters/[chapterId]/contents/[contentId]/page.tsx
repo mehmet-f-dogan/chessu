@@ -96,7 +96,7 @@ export default async function ContentPage({
               return (
                 <Link
                   href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
-                  className="bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-amber-500"
+                  className="bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-white"
                 >
                   Previous
                 </Link>
@@ -110,7 +110,7 @@ export default async function ContentPage({
                 return (
                   <Link
                     href={`/courses/${courseId}/chapters/${ids.chapter_id}/contents/${ids.content_id}`}
-                    className="ml-2 bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-amber-500"
+                    className="ml-2 bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-white"
                   >
                     Next
                   </Link>

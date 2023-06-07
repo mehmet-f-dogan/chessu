@@ -9,8 +9,6 @@ import {
 
 export default function Header() {
   let { userId } = auth();
-  const buttonClass =
-    "hover:bg-amber-500 hover:text-black shadow-2xl p-2  transition duration-300 ease-in-out";
   return userId ? (
     <header className="m-auto min-w-full px-8 py-4">
       <div className="flex flex-1 items-center justify-between">
@@ -21,17 +19,23 @@ export default function Header() {
           ChessU
         </Link>
         <nav className="flex items-center space-x-2">
-          <Link href="/home" className={buttonClass}>
+          <Link
+            href="/home"
+            className="p-2 shadow-2xl transition duration-300  ease-in-out hover:bg-amber-500 hover:text-black"
+          >
             Home
           </Link>
-          <Link href="/courses" className={buttonClass}>
+          <Link
+            href="/courses"
+            className="p-2 shadow-2xl transition duration-300  ease-in-out hover:bg-amber-500 hover:text-black"
+          >
             Courses
           </Link>
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
           <SignedOut>
-            <div className={buttonClass}>
+            <div className="p-2 shadow-2xl transition duration-300  ease-in-out hover:bg-amber-500 hover:text-black">
               <SignInButton />
             </div>
           </SignedOut>

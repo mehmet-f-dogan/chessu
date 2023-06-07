@@ -13,6 +13,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { StudyButton } from "../components/studyButton";
+import { BuyCourseButton } from "../components/buyCourseButton";
 
 type CoursePageProps = {
   courseId: string;
@@ -82,25 +84,13 @@ export default async function CoursePage({
         {course.subtitle}
       </h2>
       <p className="text-zinc-300">{course.description}</p>
-      <Suspense>
-        {isOwner ? (
-          <Link
-            href={studyLocation}
-            className={`self-center bg-white  p-2 text-xl text-black transition duration-300 ease-in-out hover:bg-black hover:text-white`}
-          >
-            {completionRatio === 1 || completionRatio === 0
-              ? "Study"
-              : `Continue (${Math.floor(
-                  completionRatio * 100
-                )}%)`}
-          </Link>
-        ) : (
-          <Link
-            href={""}
-            className={`self-center bg-white  p-2 text-xl text-black transition duration-300 ease-in-out hover:bg-black hover:text-white`}
-          >{`Buy for \$${course.price}`}</Link>
-        )}
-      </Suspense>
+      <div className="flex items-center justify-center space-x-2">
+        <StudyButton courseId={courseId} userId={userId} />
+        <BuyCourseButton
+          courseId={courseId}
+          userId={userId}
+        />
+      </div>
       {overviewArray.map(async (chapterData, index) => {
         const checkableLabel = (
           <CheckableLabel

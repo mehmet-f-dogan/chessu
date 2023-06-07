@@ -5,3 +5,4 @@ export * from "@/lib/database-request-implementations/viewRequests";
 export * from "@/lib/database-request-implementations/authRequests";
 export * from "@/lib/database-request-implementations/userRequests";
 export * from "@/lib/database-request-implementations/completionRequests";
+export * from "@/lib/database-request-implementations/paymentRequests";

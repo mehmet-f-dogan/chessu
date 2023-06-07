@@ -17,9 +17,12 @@ function getSupabaseServiceClient() {
 }
 
 async function getUserCompletionsData(userId: string) {
-  const userClient = await getSupabaseUserClient();
+  const userClient = await getSupabaseClient({
+    authorize: false,
+    cache: false,
+  });
   const { data: userCompletionsData } = await userClient
-    .from("completions")
+    .from("completion")
     .select("mapping_ids")
     .eq("user_id", userId)
     .limit(1)
@@ -222,7 +225,7 @@ export async function setContentCompletionStatus(
   userCompletionsData.mapping_ids = completionStatus
     ? [...userCompletionsData.mapping_ids, mappingIdData.id]
     : userCompletionsData.mapping_ids.filter(
-        (id) => id != mappingIdData!.id
+        (id: any) => id != mappingIdData!.id
       );
 
   await userClient
@@ -234,11 +237,15 @@ export async function getStudyLocator(
   userId: string,
   courseId: number
 ) {
-  const userClient = await getSupabaseUserClient();
   const serviceClient = await getSupabaseServiceClient();
+  const client = await getSupabaseClient({
+    authorize:false,
+    cache:false
+  });
 
-  let { data: userCompletionsData } = await userClient
-    .from("completions")
+
+  let { data: userCompletionsData } = await client
+    .from("completion")
     .select("mapping_ids")
     .eq("user_id", userId)
     .limit(1)
@@ -258,7 +265,7 @@ export async function getStudyLocator(
         "in",
         `(${userCompletionsData.mapping_ids.join(",")})`
       )
-      .order("content_id", {
+      .order("id", {
         ascending: true,
       })
       .eq("course_id", courseId)
@@ -270,7 +277,7 @@ export async function getStudyLocator(
       await serviceClient
         .from("course_chapter_content_mapping")
         .select("*")
-        .order("content_id", {
+        .order("id", {
           ascending: true,
         })
         .eq("course_id", courseId)

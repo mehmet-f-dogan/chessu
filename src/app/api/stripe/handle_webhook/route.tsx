@@ -1,20 +1,25 @@
-import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import { Stripe } from "stripe";
+import { Buffer } from "buffer";
+import { coursePurchased } from "@/lib/supabaseRequests";
+
+function getStripe() {
+  return new Stripe(process.env.STRIPE_API_SECRET_KEY!, {
+    apiVersion: "2022-11-15",
+  });
+}
 
 export async function POST(request: Request) {
   const headersList = headers();
-
   const stripeSigniture = headersList.get(
     "stripe-signature"
   );
-  const requestBody = await request.json();
-
   let event;
-
+  const stripe = getStripe();
+  const requestAsArrayBuffer = await request.arrayBuffer();
   try {
     event = stripe.webhooks.constructEvent(
-      requestBody,
+      Buffer.from(requestAsArrayBuffer),
       stripeSigniture!,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
@@ -27,10 +32,23 @@ export async function POST(request: Request) {
     );
   }
 
-  console.log(event.data);
+  const data = event.data.object as any;
+  const metadata = data.metadata as any;
+  const userId = data.client_reference_id;
 
   switch (event.type) {
     case "checkout.session.completed":
+      switch (metadata.type) {
+        case "course":
+          await coursePurchased(
+            userId,
+            parseInt(metadata.course_id)
+          );
+          break;
+
+        default:
+          break;
+      }
       // Payment is successful and the subscription is created.
       // You should provision the subscription and save the customer ID to your database.
       break;
@@ -48,7 +66,7 @@ export async function POST(request: Request) {
       console.log(`Unhandled event type ${event.type}`);
   }
 
-  return new Response(undefined, {
+  return new Response("Process successful", {
     status: 200,
   });
 }

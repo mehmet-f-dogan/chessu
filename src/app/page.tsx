@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <div className="container flex min-h-screen flex-col items-center justify-center p-8 text-center">
+    <div className="container flex flex-grow flex-col items-center justify-center p-8 text-center">
       <h1 className="text-6xl">
         Welcome to{" "}
         <span className="text-amber-500">ChessU</span>!

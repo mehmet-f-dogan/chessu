@@ -49,6 +49,5 @@ export async function getContent(contentId: number) {
 export async function getAllCourses() {
   const client = await getSupabaseClient();
   const { data } = await client.from("course").select("*");
-  //console.log(data)
   return data ?? [];
 }

@@ -48,11 +48,11 @@ async function getNavigationId({
   return (await request).data;
 }
 
-export function getNextChapterIds(
+export async function getNextChapterIds(
   chapterId: number,
   courseId: number
 ) {
-  return getNavigationId({
+  return await getNavigationId({
     level: "chapter",
     direction: "next",
     courseId,

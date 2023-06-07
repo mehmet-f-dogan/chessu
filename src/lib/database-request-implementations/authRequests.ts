@@ -13,7 +13,7 @@ const isUserCourseOwnerFunction =
     }) => {
       const client = await getSupabaseClient({
         cache: false,
-        authorize: true,
+        authorize: false,
       });
 
       const { data } = await client
