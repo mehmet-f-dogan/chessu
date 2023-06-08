@@ -1,13 +1,4 @@
 import { CheckableLabel } from "@/app/components/checkableLabel";
-import {
-  getCourse,
-  isUserCourseOwner,
-  getCourseStructure,
-  getCourseCompletionAmount,
-  getChapterCompletionAmount,
-  getStudyLocator,
-  getContentCompletionStatus,
-} from "@/lib/db/supabaseRequests";
 import { auth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";

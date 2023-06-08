@@ -1,15 +1,13 @@
-import {
-  getAllCourses,
-  getCourseCompletionAmount,
-} from "@/lib/db/supabaseRequests";
 import Link from "next/link";
 import Image from "next/image";
-import { CheckableLabel } from "@/app/components/checkableLabel";
-import { auth } from "@clerk/nextjs";
+
+import { PrismaClient } from "@prisma/client";
 
 export default async function CoursesPage() {
-  const courses = await getAllCourses();
-  let userId = auth().userId!;
+
+  const prisma = new PrismaClient();
+
+  const courses = await prisma.course.findMany()
   return (
     <div className="container m-auto flex flex-col items-center justify-center">
       <h1 className="m-4 p-2 text-6xl font-semibold ">
@@ -17,7 +15,7 @@ export default async function CoursesPage() {
       </h1>
       <div className="w-full max-w-prose">
         <ol className="grid grid-cols-1 gap-4 ">
-          {courses.map(async (course) => (
+          {courses.map((course) => (
             <li key={course.id}>
               <div className="flex flex-1 flex-col items-center space-y-4  bg-zinc-900 p-8 text-xl md:flex-row">
                 <Image
@@ -28,17 +26,7 @@ export default async function CoursesPage() {
                   className="w-[200px]"
                 />
                 <div className="flex flex-col justify-start gap-4 p-4">
-                  <CheckableLabel
-                    checkSize="text-2xl"
-                    uncheckedLabelClassNames="font-medium"
-                    checkedLabelClassNames="font-medium text-lime-500"
-                    resolvingPromise={getCourseCompletionAmount(
-                      userId,
-                      course.id
-                    ).then((value) => value === 1)}
-                    labelText={course.title}
-                  />
-
+                  <h2 className="font-medium">{course.title}</h2>
                   <p>{course.subtitle}</p>
                   <Link
                     href={`/courses/${course.id}`}

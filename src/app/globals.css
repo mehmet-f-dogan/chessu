@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "~spinners-react/lib/index.css";
-
 html {
   scrollbar-gutter: stable both-edges;
 }
