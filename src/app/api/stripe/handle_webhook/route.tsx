@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { Stripe } from "stripe";
 import { Buffer } from "buffer";
-import { coursePurchased } from "@/lib/supabaseRequests";
+import { coursePurchased } from "@/lib/db/supabaseRequests";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_API_SECRET_KEY!, {

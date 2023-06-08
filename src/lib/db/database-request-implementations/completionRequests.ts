@@ -1,24 +1,9 @@
-import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/db/supabaseClient";
 
 import { wrapFunctionWithSelectiveCache } from "./util";
 
-function getSupabaseUserClient() {
-  return getSupabaseClient({
-    authorize: true,
-    cache: false,
-  });
-}
-
-function getSupabaseServiceClient() {
-  return getSupabaseClient({
-    authorize: false,
-    cache: true,
-  });
-}
-
 async function getUserCompletionsData(userId: string) {
   const userClient = await getSupabaseClient({
-    authorize: false,
     cache: false,
   });
   const { data: userCompletionsData } = await userClient
@@ -45,19 +30,21 @@ async function getUserCourseOrChapterCompletionData({
       "Course ID or Chapter ID must be defined (Only one)"
     );
   }
-  const serviceClient = await getSupabaseServiceClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
   const userCompletionsDataPromise =
     getUserCompletionsData(userId);
 
   let mappingIdDataPromise = null;
 
   if (courseId)
-    mappingIdDataPromise = serviceClient
+    mappingIdDataPromise = client
       .from("course_chapter_content_mapping")
       .select("id")
       .eq("course_id", courseId);
   else
-    mappingIdDataPromise = serviceClient
+    mappingIdDataPromise = client
       .from("course_chapter_content_mapping")
       .select("id")
       .eq("chapter_id", chapterId);
@@ -76,8 +63,9 @@ async function getUserCourseOrChapterCompletionData({
 
   const totalNumberOfResources = mappingIdDataFlat.length;
   const completedNumberOfResources =
-    userCompletionsData.mapping_ids.filter((mapping_id) =>
-      mappingIdDataFlat.includes(mapping_id)
+    userCompletionsData.mapping_ids.filter(
+      (mapping_id: number) =>
+        mappingIdDataFlat.includes(mapping_id)
     ).length;
 
   if (totalNumberOfResources == 0) return 0;
@@ -87,7 +75,7 @@ async function getUserCourseOrChapterCompletionData({
   );
 }
 
-const getCourseCompletionStatusFunction =
+const getCourseCompletionAmountFunction =
   wrapFunctionWithSelectiveCache(
     1,
     async ({
@@ -103,17 +91,17 @@ const getCourseCompletionStatusFunction =
       })
   );
 
-export async function getCourseCompletionStatus(
+export async function getCourseCompletionAmount(
   userId: string,
   courseId: number
 ) {
-  return await getCourseCompletionStatusFunction({
+  return await getCourseCompletionAmountFunction({
     userId,
     courseId,
   });
 }
 
-const getChapterCompletionStatusFunction =
+const getChapterCompletionAmountFunction =
   wrapFunctionWithSelectiveCache(
     1,
     async ({
@@ -129,11 +117,11 @@ const getChapterCompletionStatusFunction =
       })
   );
 
-export async function getChapterCompletionStatus(
+export async function getChapterCompletionAmount(
   userId: string,
   chapterId: number
 ) {
-  return await getChapterCompletionStatusFunction({
+  return await getChapterCompletionAmountFunction({
     userId,
     chapterId,
   });
@@ -149,7 +137,9 @@ const getContentCompletionStatusFunction =
       userId: string;
       contentId: number;
     }) => {
-      const client = await getSupabaseServiceClient();
+      const client = await getSupabaseClient({
+        cache: true,
+      });
 
       const userCompletionsDataPromise =
         getUserCompletionsData(userId);
@@ -191,22 +181,27 @@ export async function setContentCompletionStatus(
   contentId: number,
   completionStatus: boolean
 ) {
-  const userClient = await getSupabaseUserClient();
-  const serviceClient = await getSupabaseServiceClient();
+  const userCompletionsDataPromise = getSupabaseClient({
+    cache: false,
+  }).then((client) => {
+    return client
+      .from("completions")
+      .select("*")
+      .eq("user_id", userId)
+      .limit(1)
+      .single();
+  });
 
-  const userCompletionsDataPromise = userClient
-    .from("completions")
-    .select("*")
-    .eq("user_id", userId)
-    .limit(1)
-    .single();
-
-  const mappingIdDataPromise = serviceClient
-    .from("course_chapter_content_mapping")
-    .select("id")
-    .eq("content_id", contentId)
-    .limit(1)
-    .single();
+  const mappingIdDataPromise = getSupabaseClient({
+    cache: true,
+  }).then((client) => {
+    return client
+      .from("course_chapter_content_mapping")
+      .select("id")
+      .eq("content_id", contentId)
+      .limit(1)
+      .single();
+  });
 
   let [
     { data: userCompletionsData },
@@ -228,21 +223,24 @@ export async function setContentCompletionStatus(
         (id: any) => id != mappingIdData!.id
       );
 
-  await userClient
-    .from("completions")
-    .insert(userCompletionsData);
+  return await getSupabaseClient({
+    cache: false,
+  }).then(async (client) => {
+    const { error } = await client
+      .from("completions")
+      .insert(userCompletionsData);
+
+    return !error;
+  });
 }
 
 export async function getStudyLocator(
   userId: string,
   courseId: number
 ) {
-  const serviceClient = await getSupabaseServiceClient();
   const client = await getSupabaseClient({
-    authorize:false,
-    cache:false
+    cache: false,
   });
-
 
   let { data: userCompletionsData } = await client
     .from("completion")
@@ -257,7 +255,7 @@ export async function getStudyLocator(
     };
 
   const { data: notCompletedContentMappingIdData } =
-    await serviceClient
+    await client
       .from("course_chapter_content_mapping")
       .select("*")
       .not(
@@ -273,16 +271,15 @@ export async function getStudyLocator(
       .single();
 
   if (!notCompletedContentMappingIdData) {
-    const { data: firstContentOfCourse } =
-      await serviceClient
-        .from("course_chapter_content_mapping")
-        .select("*")
-        .order("id", {
-          ascending: true,
-        })
-        .eq("course_id", courseId)
-        .limit(1)
-        .single();
+    const { data: firstContentOfCourse } = await client
+      .from("course_chapter_content_mapping")
+      .select("*")
+      .order("id", {
+        ascending: true,
+      })
+      .eq("course_id", courseId)
+      .limit(1)
+      .single();
 
     if (!firstContentOfCourse)
       return `/courses/${courseId}`;

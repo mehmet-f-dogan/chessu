@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/db/supabaseClient";
 import { wrapFunctionWithSelectiveCache } from "./util";
 
 const isUserCourseOwnerFunction =
@@ -13,7 +13,6 @@ const isUserCourseOwnerFunction =
     }) => {
       const client = await getSupabaseClient({
         cache: false,
-        authorize: false,
       });
 
       const { data } = await client

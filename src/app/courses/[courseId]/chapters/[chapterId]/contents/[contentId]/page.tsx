@@ -5,7 +5,7 @@ import {
   getCourse,
   getNextContentIds,
   getPreviousContentIds,
-} from "@/lib/supabaseRequests";
+} from "@/lib/db/supabaseRequests";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

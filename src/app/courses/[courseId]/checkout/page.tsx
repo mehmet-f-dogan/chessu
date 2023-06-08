@@ -16,35 +16,34 @@ export default function CoursePage({
   const userId = useAuth().userId!;
   const router = useRouter();
 
-  async function checkOwnership() {
-    let isOwner = false;
-
-    while (!isOwner) {
-      isOwner = await isOwnerRouteRequestWrapper(
+  async function redirectToCheckout() {
+    const checkoutLink =
+      await getCourseCheckoutLinkRouteRequestWrapper(
         userId,
         courseId
       );
-    }
-    router.push(`/courses/${courseId}`);
+    router.push(checkoutLink);
   }
 
-  checkOwnership();
+  redirectToCheckout();
 
   return (
     <div className="container mx-auto flex flex-grow flex-col items-center justify-center">
       <h1>
-        Please wait while we are processing your purchase.
+        Please wait while we are redirecting you to payment
+        page.
       </h1>
     </div>
   );
 }
 
-async function isOwnerRouteRequestWrapper(
+async function getCourseCheckoutLinkRouteRequestWrapper(
   userId: string,
   courseId: number
 ) {
-  const isOwnerResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_URL!}/api/user/is_owner`,
+  const courseCheckoutLinkResponse = await fetch(
+    `${process.env
+      .NEXT_PUBLIC_URL!}/api/stripe/get_course_checkout_link`,
     {
       method: "POST",
       cache: "no-cache",
@@ -54,7 +53,8 @@ async function isOwnerRouteRequestWrapper(
       body: JSON.stringify({ userId, courseId }),
     }
   );
-  const isOwnerResponseBody = await isOwnerResponse.json();
+  const courseCheckoutLinkResponseBody =
+    await courseCheckoutLinkResponse.json();
 
-  return isOwnerResponseBody.isOwner as boolean;
+  return courseCheckoutLinkResponseBody.checkoutLink as string;
 }

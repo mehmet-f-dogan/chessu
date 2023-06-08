@@ -1,10 +1,10 @@
 import { auth } from "@clerk/nextjs";
 
 import {
-  getCourseCompletionStatus,
+  getCourseCompletionAmount,
   getOwnedCourses,
   getStudyLocator,
-} from "@/lib/supabaseRequests";
+} from "@/lib/db/supabaseRequests";
 import { Suspense } from "react";
 import Link from "next/link";
 import { CheckableLabel } from "../components/checkableLabel";
@@ -24,7 +24,7 @@ export default async function HomePage() {
               {userCourses.then((courses) =>
                 courses.map(async (course) => {
                   const courseCompletionRatioPromise =
-                    getCourseCompletionStatus(
+                    getCourseCompletionAmount(
                       userId,
                       course.id
                     );

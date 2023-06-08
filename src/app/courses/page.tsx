@@ -1,7 +1,7 @@
 import {
   getAllCourses,
-  getCourseCompletionStatus,
-} from "@/lib/supabaseRequests";
+  getCourseCompletionAmount,
+} from "@/lib/db/supabaseRequests";
 import Link from "next/link";
 import Image from "next/image";
 import { CheckableLabel } from "@/app/components/checkableLabel";
@@ -32,7 +32,7 @@ export default async function CoursesPage() {
                     checkSize="text-2xl"
                     uncheckedLabelClassNames="font-medium"
                     checkedLabelClassNames="font-medium text-lime-500"
-                    resolvingPromise={getCourseCompletionStatus(
+                    resolvingPromise={getCourseCompletionAmount(
                       userId,
                       course.id
                     ).then((value) => value === 1)}

@@ -1,14 +1,9 @@
-import { getSupabaseClient as getSupabaseClientConstructor } from "@/lib/supabaseClient";
-
-function getSupabaseClient() {
-  return getSupabaseClientConstructor({
-    cache: true,
-    authorize: false,
-  });
-}
+import { getSupabaseClient } from "@/lib/db/supabaseClient";
 
 export async function getCourse(courseId: number) {
-  const client = await getSupabaseClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
 
   let { data } = await client
     .from("course")
@@ -21,7 +16,9 @@ export async function getCourse(courseId: number) {
 }
 
 export async function getChapter(chapterId: number) {
-  const client = await getSupabaseClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
 
   let { data } = await client
     .from("chapter")
@@ -34,7 +31,9 @@ export async function getChapter(chapterId: number) {
 }
 
 export async function getContent(contentId: number) {
-  const client = await getSupabaseClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
 
   let { data } = await client
     .from("content")
@@ -47,7 +46,9 @@ export async function getContent(contentId: number) {
 }
 
 export async function getAllCourses() {
-  const client = await getSupabaseClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
   const { data } = await client.from("course").select("*");
   return data ?? [];
 }

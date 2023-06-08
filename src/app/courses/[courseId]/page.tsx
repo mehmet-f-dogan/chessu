@@ -3,18 +3,16 @@ import {
   getCourse,
   isUserCourseOwner,
   getCourseStructure,
-  getCourseCompletionStatus,
-  getChapterCompletionStatus,
+  getCourseCompletionAmount,
+  getChapterCompletionAmount,
   getStudyLocator,
   getContentCompletionStatus,
-} from "@/lib/supabaseRequests";
+} from "@/lib/db/supabaseRequests";
 import { auth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { StudyButton } from "../components/studyButton";
-import { BuyCourseButton } from "../components/buyCourseButton";
+import { getCourseBasePrice } from "@/lib/stripe";
 
 type CoursePageProps = {
   courseId: string;
@@ -27,35 +25,39 @@ export default async function CoursePage({
 }) {
   const courseId = parseInt(params.courseId);
   const userId = auth().userId!;
-
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
   const coursePromise = getCourse(courseId);
   const overviewArrayPromise = getCourseStructure(courseId);
   const isOwnerPromise = isUserCourseOwner(
     userId,
     courseId
   );
-  const completionRatioPromise = getCourseCompletionStatus(
-    userId,
-    courseId
-  );
-
+  const courseCompletionAmountPromise =
+    getCourseCompletionAmount(userId, courseId);
   const studyLocationPromise = getStudyLocator(
     userId,
     courseId
   );
 
+  const coursePricePromise = getCourseBasePrice(courseId);
+
   const [
     course,
     overviewArray,
     isOwner,
-    completionRatio,
+    courseCompletionAmount,
     studyLocation,
+    coursePrice,
   ] = await Promise.all([
     coursePromise,
     overviewArrayPromise,
     isOwnerPromise,
-    completionRatioPromise,
+    courseCompletionAmountPromise,
     studyLocationPromise,
+    coursePricePromise,
   ]);
 
   if (!course || !overviewArray) redirect("/");
@@ -73,7 +75,7 @@ export default async function CoursePage({
         checkSize="text-4xl"
         uncheckedLabelClassNames="text-3xl"
         checkedLabelClassNames="text-3xl text-lime-500"
-        resolvingPromise={getCourseCompletionStatus(
+        resolvingPromise={getCourseCompletionAmount(
           userId,
           courseId
         ).then((value) => value === 1)}
@@ -85,11 +87,26 @@ export default async function CoursePage({
       </h2>
       <p className="text-zinc-300">{course.description}</p>
       <div className="flex items-center justify-center space-x-2">
-        <StudyButton courseId={courseId} userId={userId} />
-        <BuyCourseButton
-          courseId={courseId}
-          userId={userId}
-        />
+        <Link
+          href={studyLocation}
+          className="bg-amber-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-white"
+        >
+          {courseCompletionAmount === 0 ? (
+            <span>Study</span>
+          ) : (
+            <span>Continue Studying</span>
+          )}
+        </Link>
+        {!isOwner && (
+          <Link
+            className="bg-lime-500 p-2 text-black transition duration-300 ease-in-out hover:bg-black hover:text-white"
+            href={`/courses/${courseId}/checkout`}
+          >
+            {`Get for ${currencyFormatter.format(
+              coursePrice / 100
+            )}`}
+          </Link>
+        )}
       </div>
       {overviewArray.map(async (chapterData, index) => {
         const checkableLabel = (
@@ -97,7 +114,7 @@ export default async function CoursePage({
             checkSize="text-3xl"
             uncheckedLabelClassNames="text-2xl hover:underline"
             checkedLabelClassNames="text-2xl text-lime-500 hover:underline"
-            resolvingPromise={getChapterCompletionStatus(
+            resolvingPromise={getChapterCompletionAmount(
               userId,
               chapterData.chapter_id
             ).then((value) => value === 1)}

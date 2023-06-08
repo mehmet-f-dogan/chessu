@@ -1,12 +1,12 @@
 import { CheckableLabel } from "@/app/components/checkableLabel";
 import {
-  getChapterCompletionStatus,
+  getChapterCompletionAmount,
   getContentCompletionStatus,
   getCourse,
   getCourseStructure,
   getNextChapterIds,
   getPreviousChapterIds,
-} from "@/lib/supabaseRequests";
+} from "@/lib/db/supabaseRequests";
 import { auth } from "@clerk/nextjs";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -56,7 +56,7 @@ export default async function ChapterPage({
               checkSize="text-2xl"
               uncheckedLabelClassNames="text-xl"
               checkedLabelClassNames="text-xl text-lime-500"
-              resolvingPromise={getChapterCompletionStatus(
+              resolvingPromise={getChapterCompletionAmount(
                 userId,
                 currentChapter.chapter_id
               ).then((value) => value === 1)}

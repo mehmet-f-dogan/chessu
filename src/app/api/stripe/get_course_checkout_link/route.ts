@@ -1,10 +1,13 @@
-import { isUserCourseOwner } from "@/lib/db/supabaseRequests";
+import { getCourseCheckoutLink } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const requestBody = await request.json();
   const userId = requestBody.userId;
   const courseId = requestBody.courseId;
-  const isOwner = await isUserCourseOwner(userId, courseId);
-  return NextResponse.json({ isOwner });
+  const checkoutLink = await getCourseCheckoutLink(
+    userId,
+    courseId
+  );
+  return NextResponse.json({ checkoutLink });
 }

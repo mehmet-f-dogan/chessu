@@ -1,4 +1,4 @@
-import { getSupabaseClient as getSupabaseClientConstructor } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/db/supabaseClient";
 
 type getNavigationIdParams = {
   level: "chapter" | "content";
@@ -7,20 +7,15 @@ type getNavigationIdParams = {
   courseId: number;
 };
 
-function getSupabaseClient() {
-  return getSupabaseClientConstructor({
-    authorize: false,
-    cache: true,
-  });
-}
-
 async function getNavigationId({
   level,
   direction,
   levelId,
   courseId,
 }: getNavigationIdParams) {
-  const client = await getSupabaseClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
 
   let requestFilterIdName: "chapter_id" | "content_id" =
     level === "chapter" ? "chapter_id" : "content_id";
@@ -97,7 +92,9 @@ export async function getPreviousContentIds(
 }
 
 export async function getCourseStructure(courseId: number) {
-  const client = await getSupabaseClient();
+  const client = await getSupabaseClient({
+    cache: true,
+  });
 
   const { data: courseIdsToChapterIdsMappings } =
     await client
@@ -132,28 +129,34 @@ export async function getCourseStructure(courseId: number) {
   const courseStructureInIdsAndTitles = await Promise.all(
     courseStructureInIds.map(
       async (chapterIdAndContentIds) => {
-        const chapterTitlePromise =
-          getSupabaseClient().then(async (client) => {
-            const value = await client
-              .from("chapter")
-              .select("title")
-              .eq("id", chapterIdAndContentIds.chapter_id)
-              .limit(1)
-              .single();
-            return value.data?.title;
-          });
+        const chapterTitlePromise = getSupabaseClient({
+          cache: true,
+        }).then(async (client) => {
+          const value = await client
+            .from("chapter")
+            .select("title")
+            .eq("id", chapterIdAndContentIds.chapter_id)
+            .limit(1)
+            .single();
+          return value.data?.title;
+        });
 
         const contentIdsAndTitlesPromise =
-          getSupabaseClient().then(async (client) => {
-            const value = await client
-              .from("content")
-              .select("id,title")
-              .in("id", chapterIdAndContentIds.content_ids)
-              .order("id", {
-                ascending: true,
-              });
-            return value.data;
-          });
+          getSupabaseClient({ cache: true }).then(
+            async (client) => {
+              const value = await client
+                .from("content")
+                .select("id,title")
+                .in(
+                  "id",
+                  chapterIdAndContentIds.content_ids
+                )
+                .order("id", {
+                  ascending: true,
+                });
+              return value.data;
+            }
+          );
 
         const [chapterTitle, contentIdsAndTitles] =
           await Promise.all([
