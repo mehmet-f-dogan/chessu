@@ -1,6 +1,5 @@
 import { getSupabaseClient } from "@/lib/db/supabaseClient";
 
-import { wrapFunctionWithSelectiveCache } from "./util";
 
 async function getUserCompletionsData(userId: string) {
   const userClient = await getSupabaseClient({
@@ -75,105 +74,57 @@ async function getUserCourseOrChapterCompletionData({
   );
 }
 
-const getCourseCompletionAmountFunction =
-  wrapFunctionWithSelectiveCache(
-    1,
-    async ({
-      userId,
-      courseId,
-    }: {
-      userId: string;
-      courseId: number;
-    }) =>
-      getUserCourseOrChapterCompletionData({
-        userId,
-        courseId,
-      })
-  );
-
 export async function getCourseCompletionAmount(
   userId: string,
   courseId: number
 ) {
-  return await getCourseCompletionAmountFunction({
+  return await getUserCourseOrChapterCompletionData({
     userId,
     courseId,
-  });
+  })
 }
 
-const getChapterCompletionAmountFunction =
-  wrapFunctionWithSelectiveCache(
-    1,
-    async ({
-      userId,
-      chapterId,
-    }: {
-      userId: string;
-      chapterId: number;
-    }) =>
-      getUserCourseOrChapterCompletionData({
-        userId,
-        chapterId,
-      })
-  );
 
 export async function getChapterCompletionAmount(
   userId: string,
   chapterId: number
 ) {
-  return await getChapterCompletionAmountFunction({
+  return await getUserCourseOrChapterCompletionData({
     userId,
     chapterId,
-  });
+  })
 }
-
-const getContentCompletionStatusFunction =
-  wrapFunctionWithSelectiveCache(
-    true,
-    async ({
-      userId,
-      contentId,
-    }: {
-      userId: string;
-      contentId: number;
-    }) => {
-      const client = await getSupabaseClient({
-        cache: true,
-      });
-
-      const userCompletionsDataPromise =
-        getUserCompletionsData(userId);
-
-      const mappingIdDataPromise = client
-        .from("course_chapter_content_mapping")
-        .select("id")
-        .eq("content_id", contentId)
-        .limit(1)
-        .single();
-
-      const [userCompletionsData, { data: mappingIdData }] =
-        await Promise.all([
-          userCompletionsDataPromise,
-          mappingIdDataPromise,
-        ]);
-
-      if (!userCompletionsData || !mappingIdData)
-        return false;
-
-      return userCompletionsData.mapping_ids.includes(
-        mappingIdData.id
-      );
-    }
-  );
 
 export async function getContentCompletionStatus(
   userId: string,
   contentId: number
 ) {
-  return await getContentCompletionStatusFunction({
-    userId,
-    contentId,
+  const client = await getSupabaseClient({
+    cache: true,
   });
+
+  const userCompletionsDataPromise =
+    getUserCompletionsData(userId);
+
+  const mappingIdDataPromise = client
+    .from("course_chapter_content_mapping")
+    .select("id")
+    .eq("content_id", contentId)
+    .limit(1)
+    .single();
+
+  const [userCompletionsData, { data: mappingIdData }] =
+    await Promise.all([
+      userCompletionsDataPromise,
+      mappingIdDataPromise,
+    ]);
+
+  if (!userCompletionsData || !mappingIdData)
+    return false;
+
+  return userCompletionsData.mapping_ids.includes(
+    mappingIdData.id
+  );
 }
 
 export async function setContentCompletionStatus(
@@ -220,8 +171,8 @@ export async function setContentCompletionStatus(
   userCompletionsData.mapping_ids = completionStatus
     ? [...userCompletionsData.mapping_ids, mappingIdData.id]
     : userCompletionsData.mapping_ids.filter(
-        (id: any) => id != mappingIdData!.id
-      );
+      (id: any) => id != mappingIdData!.id
+    );
 
   return await getSupabaseClient({
     cache: false,
