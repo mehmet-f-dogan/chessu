@@ -1,19 +1,12 @@
 "use client";
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
-  const { name, message, stack } = error;
+export default async function SorryPage() {
   return (
-    <div className="items m-auto  flex max-w-prose flex-col items-center">
-      <h1>Something went wrong!</h1>
-      <h2>{name}</h2>
-      <h3>{message}</h3>
-      <p>{JSON.stringify(error.stack)}</p>
+    <div className="m-auto flex flex-grow flex-col items-center justify-center p-8">
+      <h1 className="text-2xl">
+        Sorry, we are having issues right now.
+      </h1>
+      <h2 className="text-xl">Please try again later.</h2>
     </div>
   );
 }

@@ -8,23 +8,31 @@ export default function LandingPage() {
         <span className="text-amber-500">ChessU</span>!
       </h1>
       <h2 className="text-4xl">
-        Batteries included Chess course platform.
+        Chess course platform.
       </h2>
       <h3 className="mt-4 text-xl">
         Supported features include:
       </h3>
       <ul>
         <li className="text-2xl text-red-500">
-          Videos, Studies, Quizes
-        </li>
-        <li className="text-2xl text-purple-500">
-          Stockfish 15
+          Videos, Chessboard
         </li>
         <li className="text-2xl text-green-500">
           Sales & Memberships
         </li>
         <li className="text-2xl text-blue-500">
           Free/Promotional Material
+        </li>
+      </ul>
+      <h3 className="mt-4 text-xl">
+        Upcoming features:
+      </h3>
+      <ul>
+        <li className="text-2xl text-red-500">
+          Quizes, Studies, Progress Tracking
+        </li>
+        <li className="text-2xl text-purple-500">
+          Stockfish 15
         </li>
       </ul>
       <Link

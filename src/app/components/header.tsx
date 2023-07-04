@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  auth,
   SignedIn,
   SignedOut,
   SignInButton,
@@ -8,9 +7,8 @@ import {
 } from "@clerk/nextjs";
 
 export default function Header() {
-  let { userId } = auth();
-  return userId ? (
-    <header className="m-auto min-w-full px-8 py-4">
+  return (
+    <header className="min-w-full py-4">
       <div className="flex flex-1 items-center justify-between">
         <Link
           className="select-none text-2xl font-bold"
@@ -31,6 +29,12 @@ export default function Header() {
           >
             Courses
           </Link>
+          <Link
+            href="/board"
+            className="p-2 shadow-2xl transition duration-300  ease-in-out hover:bg-amber-500 hover:text-black"
+          >
+            Board
+          </Link>
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
@@ -42,7 +46,5 @@ export default function Header() {
         </nav>
       </div>
     </header>
-  ) : (
-    <></>
   );
-}
+} 

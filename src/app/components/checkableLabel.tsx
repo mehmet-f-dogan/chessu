@@ -6,34 +6,38 @@ type CheckableLabelParams = {
   uncheckedLabelClassNames?: string;
   checkedLabelClassNames?: string;
   checkSize: string;
-  resolvingPromise: Promise<boolean>;
+  shouldBeChecked: Promise<Boolean>;
 };
 
-export function CheckableLabel(
+export async function CheckableLabel(
   props: CheckableLabelParams
 ) {
-  const defaultElement = (
-    <span className={props.uncheckedLabelClassNames}>
-      {props.labelText}
-    </span>
-  );
-  const shouldBeChecked = props.resolvingPromise;
 
   return (
     <div className="flex items-center">
-      <Suspense fallback={defaultElement}>
-        {shouldBeChecked.then((value) => {
-          return value ? (
-            <CheckedLabel
-              checkSize={props.checkSize}
-              classNames={props.checkedLabelClassNames}
-              labelText={props.labelText}
-            />
-          ) : (
-            defaultElement
-          );
-        })}
+      <Suspense fallback={
+        <span className={props.uncheckedLabelClassNames}>
+          {props.labelText}
+        </span>
+      }>
+        
       </Suspense>
+      {props.shouldBeChecked.then((value) => {
+        if (value) {
+          return (<CheckedLabel
+            checkSize={props.checkSize}
+            classNames={props.checkedLabelClassNames}
+            labelText={props.labelText}
+          />)
+        }
+        else {
+          return (
+            <span className={props.uncheckedLabelClassNames}>
+              {props.labelText}
+            </span>
+          )
+        }
+      })}
     </div>
   );
 }
